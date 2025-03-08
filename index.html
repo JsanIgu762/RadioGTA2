@@ -1,0 +1,146 @@
+<!Doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=devide-width, initial-scale=1.0">
+    <title>Radio Grand theft Auto</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/058d98c334.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="reproductor" id="reproductor">
+            <nav>
+                <div class="circle">
+                    <i class="fa-solid fa-angle-left"></i>
+                </div>
+                <div class="circle">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </div>
+            </nav>
+            <h1 id="Rtit" class="Rtit"></h1>
+            <img src="src/img/Flash_FM.webp" class="fto" id="fto">
+            <p id="Game"></p>
+            <audio id="song">
+                <source src="src/songs/Flash FM.mp3" type="audio/mpeg" id="sor">
+            </audio>
+            <div class="controls">
+                <div id="prev" onclick="prev()"><i class="fa-solid fa-backward"></i></div>
+                <div onclick="playPause()"><i class="fa-solid fa-play" id="ctrlIcon"></i></div>
+                <div id="next" onclick="next()"><i class="fa-solid fa-forward"></i></div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        const song = document.querySelector('#song');
+        const ctrlIcon = document.getElementById("ctrlIcon");
+        let radioList = ["Flash FM", "Radio Los Santos", "Fever 105", "CSR 103:9", "K-DST"];
+        let gametitle = ["Grand Theft Auto Vice city", "Grand Theft Auto San Andreas", "Grand Theft Auto Vice city", "Grand Theft Auto San Andreas", "Grand Theft Auto San Andreas"];
+        let imagen = ["src/img/Flash_FM.webp", "src/img/RadioLosSantos.JPG.webp", "src/img/Fever_105.webp", "src/img/CSR_103.9.webp", "src/img/K-DST_Icon.webp"];
+        let color = ["rgb(89, 161, 243)", "rgb(55, 207, 108)", "rgb(243, 89, 89)", "rgb(105, 39, 112)", "rgb(18, 6, 6)"];
+        let cancion = ["src/songs/Flash FM.mp3", "src/songs/Radio Los Santos.mp3", "src/songs/Fever 105.mp3", "src/songs/CSR-103.9.mp3", "src/songs/K-DST.mp3"];
+        document.getElementById("Rtit").innerHTML = radioList[0];
+        document.getElementById("Game").innerHTML = gametitle[0];
+        let current = 0;
+        var audio = document.getElementById("song");
+        var control = document.getElementById("ctrlIcon");
+
+        let tiemposGuardados = new Array(radioList.length).fill(null); // Guarda el tiempo de cada estación
+        let ultimaVez = new Array(radioList.length).fill(Date.now()); // Guarda el tiempo de cambio de estación
+
+        // Generar tiempos aleatorios al cargar la página
+        window.onload = function () {
+            let ahora = Date.now();
+
+            for (let i = 0; i < radioList.length; i++) {
+                tiemposGuardados[i] = Math.floor(Math.random() * 180); // Punto aleatorio entre 0 y 3 minutos
+                ultimaVez[i] = ahora; // Guardamos la hora de inicio
+            }
+
+            cambiarEstacion(); // Iniciar con la primera estación correctamente
+        };
+
+        function next() {
+            guardarTiempoActual();
+            current = (current + 1) % radioList.length;
+            cambiarEstacion();
+        }
+
+        function prev() {
+            guardarTiempoActual();
+            current = (current - 1 + radioList.length) % radioList.length;
+            cambiarEstacion();
+        }
+
+        function guardarTiempoActual() {
+            let ahora = Date.now();
+            let tiempoTranscurrido = (ahora - ultimaVez[current]) / 1000; // Convertir ms a segundos
+            tiemposGuardados[current] += tiempoTranscurrido; // Acumular tiempo
+            ultimaVez[current] = ahora; // Actualizar la última vez que estuvimos en esta estación
+        }
+
+        function cambiarEstacion() {
+            document.getElementById("Rtit").innerHTML = radioList[current];
+            document.getElementById("Game").innerHTML = gametitle[current];
+            document.getElementById("fto").src = imagen[current];
+            document.getElementById("sor").src = cancion[current];
+            document.getElementById("reproductor").style.background = color[current];
+
+            audio.load();
+            audio.onloadedmetadata = function () {
+                let duracion = audio.duration;
+                let ahora = Date.now();
+                let tiempoTranscurrido = (ahora - ultimaVez[current]) / 1000;
+
+                if (tiemposGuardados[current] === null){
+                    tiemposGuardados[current] = Math.floor(Math.random() * (duracion - 180));
+                }
+                
+                let nuevoTiempo = tiemposGuardados[current] + tiempoTranscurrido;
+
+                if (nuevoTiempo >= duracion) {
+                    nuevoTiempo = 0; // Reiniciar si se pasa del final
+                }
+
+                audio.currentTime = nuevoTiempo;
+                ultimaVez[current] = Date.now(); // Reiniciar contador de tiempo para esta estación
+
+                if (!control.classList.contains("fa-play")) {
+                    audio.play();
+                }
+            };
+            // Cambiar color del título si es "K-DST"
+            let titulo = document.getElementById("Rtit");
+            let game = document.getElementById("Game");
+            if (radioList[current] === "K-DST" || radioList[current] === "CSR 103:9" ) {
+                titulo.style.color = "white"; 
+                if (gametitle[current] === "Grand Theft Auto San Andreas"){
+                    game.style.color = "white";
+                }else{
+                    game.style.color = "black";
+                }
+            } else {
+                titulo.style.color = "black";
+                game.style.color = "black";
+            };
+            
+        };
+
+        function playPause() {
+            if (ctrlIcon.classList.contains("fa-pause")) {
+                song.pause();
+                ctrlIcon.classList.remove("fa-pause");
+                ctrlIcon.classList.add("fa-play");
+            }
+            else {
+                song.play();
+                ctrlIcon.classList.add("fa-pause");
+                ctrlIcon.classList.remove("fa-play");
+            }
+        };
+    </script>
+</body>
+
+</html>
